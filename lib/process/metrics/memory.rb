@@ -77,6 +77,23 @@ module Process
 					
 					return usage
 				end
+			elsif RUBY_PLATFORM.match?(/darwin/)
+				def self.supported?
+					true
+				end
+
+				def self.capture(pids)
+					usage = self.new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+					pid_list = pids.map { |pid| "-p #{pid}" }.join(" ")
+					output = `footprint -f bytes #{pid_list}`
+
+					output.scan(/phys_footprint: (\d+) B/) do |(bytes)|
+						usage[:proportional_size] += Integer(bytes).fdiv(1024)
+					end
+
+					return usage
+				end
 			else
 				def self.supported?
 					false
